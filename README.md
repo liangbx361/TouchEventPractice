@@ -33,3 +33,36 @@ main(ZygoteInit) --> run(ZygoteInit$MethodAndArgsCaller) --> main(ActivityThread
 * ViewPostImeInputStage的 onProcess 中把事件调用processPointerEvent方法，进入事件分发流程了
 * processPointerEvent根据结果标记为FINISH_HANDLED或FPRWARD
 * 当调用finishInputEvent（ViewRootImpl)，会调用 finishInputEvent（InputEventReceiver）告诉系统是否已处理事件，如果不处理，事件的其他状态不会发送过来
+
+## 触摸事件MotionEvent
+
+## 单点触控
+
+| 类型                   | 说明         |
+| ---------------------- | ------------ |
+| ACTION_DOWN            | 手指按下触发 |
+| ACTION_MOVE            | 手指移动触发 |
+| ACTION_UP              | 手指离开触发 |
+| ACTION_CANCEL（特殊）  |              |
+| ACTION_OUTSIDE（特殊） |              |
+
+## 多点触控
+
+| 类型                | 说明                                 |
+| ------------------- | ------------------------------------ |
+| ACTION_DOWN         | 第一个手指按下触发                   |
+| ACTION_MOVE         | 手指移动触发（可能是第一个或者其他） |
+| ACTION_POINTER_DOWN | 其他手指按下触发                     |
+| ACTION_POINTER_UP   | 非最后一个手指离开触发               |
+| ACTION_UP           | 最后一个手指离开触发                 |
+
+| 方法                            | 说明                           |
+| ------------------------------- | ------------------------------ |
+| getActionIndex()                | 获取该事件是哪个索引手指产生的 |
+| getPointerCount()               | 获取屏幕上的手指个数           |
+| getPointerId(int pointerIndex)  | 通过索引获取的手指ID           |
+| findPointerIndex(int pointerId) | 通过手指ID获取索引             |
+
+### 参考
+
+[MotionEvent详解] (http://www.gcssloop.com/customview/motionevent)

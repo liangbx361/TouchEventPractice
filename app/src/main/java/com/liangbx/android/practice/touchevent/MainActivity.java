@@ -16,4 +16,8 @@ public class MainActivity extends AppCompatActivity {
     public void navToSimple(View view) {
         startActivity(new Intent(this, SimpleActivity.class));
     }
+
+    public void navToAction(View view) {
+        startActivity(new Intent(this, ActionSampleActivity.class));
+    }
 }

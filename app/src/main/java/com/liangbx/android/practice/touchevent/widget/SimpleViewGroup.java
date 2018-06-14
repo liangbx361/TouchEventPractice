@@ -43,7 +43,7 @@ public class SimpleViewGroup extends FrameLayout {
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
 
-        Log.d(TAG, "dispatchTouchEvent --> " + TouchEventUtil.getAction(ev));
+        Log.d(TAG, "dispatchTouchEvent --> " + TouchEventUtil.getActionName(ev));
 
         return super.dispatchTouchEvent(ev);
     }
@@ -51,7 +51,7 @@ public class SimpleViewGroup extends FrameLayout {
     @Override
     public boolean onInterceptHoverEvent(MotionEvent ev) {
 
-        Log.d(TAG, "onInterceptHoverEvent --> " + TouchEventUtil.getAction(ev));
+        Log.d(TAG, "onInterceptHoverEvent --> " + TouchEventUtil.getActionName(ev));
 
         return super.onInterceptHoverEvent(ev);
     }
@@ -59,7 +59,7 @@ public class SimpleViewGroup extends FrameLayout {
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
 
-        Log.d(TAG, "onTouchEvent --> " + TouchEventUtil.getAction(ev));
+        Log.d(TAG, "onTouchEvent --> " + TouchEventUtil.getActionName(ev));
 
         return super.onTouchEvent(ev);
     }
