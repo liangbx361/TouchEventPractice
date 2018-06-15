@@ -1,4 +1,8 @@
-# 事件分发详解
+# Android触摸事件讲解
+
+大纲：
+* 触摸事件如何产生的
+* 
 
 ## 事件调用链
 ```java
@@ -38,13 +42,13 @@ main(ZygoteInit) --> run(ZygoteInit$MethodAndArgsCaller) --> main(ActivityThread
 
 ## 单点触控
 
-| 类型                   | 说明         |
-| ---------------------- | ------------ |
-| ACTION_DOWN            | 手指按下触发 |
-| ACTION_MOVE            | 手指移动触发 |
-| ACTION_UP              | 手指离开触发 |
-| ACTION_CANCEL（特殊）  |              |
-| ACTION_OUTSIDE（特殊） |              |
+| 类型                   | 说明                               |
+| ---------------------- | ---------------------------------- |
+| ACTION_DOWN            | 手指按下触发                       |
+| ACTION_MOVE            | 手指移动触发                       |
+| ACTION_UP              | 手指离开触发                       |
+| ACTION_CANCEL（特殊）  | 事件被上层拦截，上层主动发送的事件 |
+| ACTION_OUTSIDE（特殊） |                                    |
 
 ## 多点触控
 

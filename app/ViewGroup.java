@@ -2502,10 +2502,13 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
      */
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
+
+        // 调试（不管）
         if (mInputEventConsistencyVerifier != null) {
             mInputEventConsistencyVerifier.onTouchEvent(ev, 1);
         }
 
+        // 辅助功能（不管）
         // If the event targets the accessibility focused view and this is it, start
         // normal event dispatch. Maybe a descendant is what will handle the click.
         if (ev.isTargetAccessibilityFocus() && isAccessibilityFocusedViewOrHost()) {
@@ -2515,11 +2518,15 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
         boolean handled = false;
         // 校验事件是否安全（合法）
         if (onFilterTouchEventForSecurity(ev)) {
+
             final int action = ev.getAction();
+            // 获取事件类型
             final int actionMasked = action & MotionEvent.ACTION_MASK;
 
-            // Handle an initial down. 按下时初始化
+            // Handle an initial down.
             if (actionMasked == MotionEvent.ACTION_DOWN) {
+                // 清除状态
+
                 // Throw away all previous state when starting a new touch gesture.
                 // The framework may have dropped the up or cancel event for the previous gesture
                 // due to an app switch, ANR, or some other state change.
@@ -2528,45 +2535,52 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
             }
 
             // Check for interception.
-            // 拦截标志
             final boolean intercepted;
-            if (actionMasked == MotionEvent.ACTION_DOWN
-                    || mFirstTouchTarget != null) {
+            if (actionMasked == MotionEvent.ACTION_DOWN || mFirstTouchTarget != null) {
             	// 是否允许拦截
                 final boolean disallowIntercept = (mGroupFlags & FLAG_DISALLOW_INTERCEPT) != 0;
                 if (!disallowIntercept) {
-                	// 允许拦截 调用 onInterceptTouchEvent 处理
+                	// 询问是否拦截
                     intercepted = onInterceptTouchEvent(ev);
-                    // NOTE 重置事件动作
-                    ev.setAction(action); // restore action in case it was changed
+                    // 恢复Action，避免被onInterceptTouchEvent修改了Action
+                    // restore action in case it was changed
+                    ev.setAction(action);
                 } else {
                     intercepted = false;
                 }
             } else {
+                // ACTION_DOWN 之后还没有处理对象，则强制拦截
                 // There are no touch targets and this action is not an initial down
                 // so this view group continues to intercept touches.
                 intercepted = true;
             }
 
+            // （不管）
             // If intercepted, start normal event dispatch. Also if there is already
             // a view that is handling the gesture, do normal event dispatch.
             if (intercepted || mFirstTouchTarget != null) {
                 ev.setTargetAccessibilityFocus(false);
             }
 
+            // 检测事件是否为被取消状态
             // Check for cancelation.
             final boolean canceled = resetCancelNextUpFlag(this)
                     || actionMasked == MotionEvent.ACTION_CANCEL;
 
+            // 多点触控处理（不管）
             // Update list of touch targets for pointer down, if needed.
             final boolean split = (mGroupFlags & FLAG_SPLIT_MOTION_EVENTS) != 0;
-            // 触摸目标
+
+            // 新的接收者
             TouchTarget newTouchTarget = null;
+            // 是否已经分发给新的接收者
             boolean alreadyDispatchedToNewTouchTarget = false;
 
-			// 未取消，不拦截
+            // ===================== 查找接收者 =====================
             if (!canceled && !intercepted) {
+                // 事件未取消和拦截，正常的处理流程
 
+                // 具备可访问焦点的子控件
                 // If the event is targeting accessiiblity focus we give it to the
                 // view that has accessibility focus and if it does not handle it
                 // we clear the flag and dispatch the event to all children as usual.
@@ -2575,12 +2589,17 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
                 View childWithAccessibilityFocus = ev.isTargetAccessibilityFocus()
                         ? findChildWithAccessibilityFocus() : null;
 
-                // ACTION_DOWN 事件触发时进行接收者搜索
+                // 1. ACTION_DOWN 事件触发
+                // 2. ACTION_POINTER_DOWN 事件
+                // 3. ACTION_HOVER_MOVE 鼠标移动事件
+                // 三个事件之一
                 if (actionMasked == MotionEvent.ACTION_DOWN
                         || (split && actionMasked == MotionEvent.ACTION_POINTER_DOWN)
                         || actionMasked == MotionEvent.ACTION_HOVER_MOVE) {
 
                     final int actionIndex = ev.getActionIndex(); // always 0 for down
+
+                    // 忽略
                     final int idBitsToAssign = split ? 1 << ev.getPointerId(actionIndex)
                             : TouchTarget.ALL_POINTER_IDS;
 
@@ -2588,28 +2607,33 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
                     // have become out of sync.
                     removePointersFromTouchTargets(idBitsToAssign);
 
+                    //
                     final int childrenCount = mChildrenCount;
                     if (newTouchTarget == null && childrenCount != 0) {
 
+                        // 获取相对位置
                         final float x = ev.getX(actionIndex);
                         final float y = ev.getY(actionIndex);
 
+                        // 重新排列子控件，从前到后
                         // Find a child that can receive the event.
                         // Scan children from front to back.
-                        // 重新排列子控件
                         final ArrayList<View> preorderedList = buildTouchDispatchChildList();
+
                         // 自定义顺序标志
                         final boolean customOrder = preorderedList == null
                                 && isChildrenDrawingOrderEnabled();
 
                         final View[] children = mChildren;
 
-                        // 倒序遍历所有子控件
+                        // 倒序遍历子控件
                         for (int i = childrenCount - 1; i >= 0; i--) {
 
+                            // 查找View的位置
                             final int childIndex = getAndVerifyPreorderedIndex(
                                     childrenCount, i, customOrder);
-                            // 子控件
+
+                            // 查找子控件
                             final View child = getAndVerifyPreorderedView(
                                     preorderedList, children, childIndex);
 
@@ -2625,30 +2649,36 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
                                 i = childrenCount - 1;
                             }
 
-                            // 排除无法接收事件的子控件（比如隐藏的控件，不在坐标范围内的控件）
+                            // 排查无法接收事件的子控件和不在坐标范围内的子控件
                             if (!canViewReceivePointerEvents(child)
                                     || !isTransformedTouchPointInView(x, y, child, null)) {
                                 ev.setTargetAccessibilityFocus(false);
                                 continue;
                             }
 
-                            // 可能是接收者
-                            // 是否已经在接收者链表中
+                            // 是否已经存在接收者链表中
                             newTouchTarget = getTouchTarget(child);
                             if (newTouchTarget != null) {
+                                // 已找到目标子控件，直接返回
+
                                 // Child is already receiving touch within its bounds.
                                 // Give it the new pointer in addition to the ones it is handling.
                                 newTouchTarget.pointerIdBits |= idBitsToAssign;
                                 break;
                             }
 
+                            // 重置
                             resetCancelNextUpFlag(child);
 
+                            // 分发事件到该子控件
                             if (dispatchTransformedTouchEvent(ev, false, child, idBitsToAssign)) {
+                                // 子控件已同意接收这个事件
+
+                                // 记录ACTION_DOWN事件按下的时间
                                 // Child wants to receive touch within its bounds.
-                                // 已查找到接收事件的子控件
                                 mLastTouchDownTime = ev.getDownTime();
 
+                                // 记录该子控件在控件列表中对应的索引
                                 if (preorderedList != null) {
                                     // childIndex points into presorted list, find original index
                                     for (int j = 0; j < childrenCount; j++) {
@@ -2661,12 +2691,17 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
                                     mLastTouchDownIndex = childIndex;
                                 }
 
+                                // 记录事件的坐标
                                 mLastTouchDownX = ev.getX();
                                 mLastTouchDownY = ev.getY();
-                                // 添加到接收者链表
+
+                                // 添加到接收者链表（内部将mFirstTouchTarget=newTouchTarget）
                                 newTouchTarget = addTouchTarget(child, idBitsToAssign);
+
                                 // 标记为已分发
                                 alreadyDispatchedToNewTouchTarget = true;
+
+                                // 有子控件处理，直接返回
                                 break;
                             }
 
@@ -2674,16 +2709,21 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
                             // the flag and do a normal dispatch to all children.
                             ev.setTargetAccessibilityFocus(false);
                         }
+
                         if (preorderedList != null) preorderedList.clear();
                     }
 
                     if (newTouchTarget == null && mFirstTouchTarget != null) {
+                        // 目前没有子控接收事件，但之前有接收事件的子控件
+
+                        // 将最近的Target设置为最新的Target
                         // Did not find a child to receive the event.
                         // Assign the pointer to the least recently added target.
                         newTouchTarget = mFirstTouchTarget;
                         while (newTouchTarget.next != null) {
                             newTouchTarget = newTouchTarget.next;
                         }
+                        // 标记访问状态
                         newTouchTarget.pointerIdBits |= idBitsToAssign;
                     }
                 }
@@ -2692,30 +2732,34 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
             // 分发事件给接收者
             // Dispatch to touch targets.
             if (mFirstTouchTarget == null) {
-            	// 没有接收者，分发给自己
+            	// 没有子控件接收事件，将自己当做普通控件进行事件处理
                 // No touch targets so treat this as an ordinary view.
                 handled = dispatchTransformedTouchEvent(ev, canceled, null,
                         TouchTarget.ALL_POINTER_IDS);
             } else {
-            	// 分发给目标接收者
+            	// 分发给接收者
                 // Dispatch to touch targets, excluding the new touch target if we already
                 // dispatched to it.  Cancel touch targets if necessary.
                 TouchTarget predecessor = null;
                 TouchTarget target = mFirstTouchTarget;
-                //
+
+                // 遍历所以有的接收者
                 while (target != null) {
                     // 下一个接收者
                     final TouchTarget next = target.next;
 
                     if (alreadyDispatchedToNewTouchTarget && target == newTouchTarget) {
+                        // 已经分发给新的Target，标记为已处理
                         handled = true;
                     } else {
-                        final boolean cancelChild = resetCancelNextUpFlag(target.child)
-                                || intercepted;
+                        final boolean cancelChild = resetCancelNextUpFlag(target.child) || intercepted;
+
+                        // 分发给当前的接收者
                         if (dispatchTransformedTouchEvent(ev, cancelChild,
                                 target.child, target.pointerIdBits)) {
                             handled = true;
                         }
+
                         if (cancelChild) {
                             if (predecessor == null) {
                                 mFirstTouchTarget = next;
@@ -2727,6 +2771,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
                             continue;
                         }
                     }
+
                     predecessor = target;
                     target = next;
                 }
@@ -2744,9 +2789,11 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
             }
         }
 
+
         if (!handled && mInputEventConsistencyVerifier != null) {
             mInputEventConsistencyVerifier.onUnhandledEvent(ev, 1);
         }
+
         return handled;
     }
 
