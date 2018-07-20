@@ -13,16 +13,16 @@
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="navToSimple"
-        android:text="Simple"
+        android:layout_marginTop="20dp"
+        android:onClick="navToMotionEvent"
+        android:text="事件类型（MotionEvent）"
         />
 
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:onClick="navToAction"
-        android:text="Action Sample"
+        android:onClick="navToSimple"
+        android:text="事件分发（Dispatch Event）"
         />
 
 </LinearLayout>

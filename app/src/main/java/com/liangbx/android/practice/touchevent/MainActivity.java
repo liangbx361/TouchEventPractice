@@ -14,10 +14,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void navToSimple(View view) {
-        startActivity(new Intent(this, SimpleActivity.class));
+        startActivity(new Intent(this, DispatchActivity.class));
     }
 
-    public void navToAction(View view) {
-        startActivity(new Intent(this, ActionSampleActivity.class));
+    public void navToMotionEvent(View view) {
+        startActivity(new Intent(this, MotionEventActivity.class));
     }
 }

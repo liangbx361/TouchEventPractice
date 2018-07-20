@@ -203,6 +203,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
     private Animation.AnimationListener mAnimationListener;
 
     // First touch target in the linked list of touch targets.
+    // 首个触摸事件接收者
     private TouchTarget mFirstTouchTarget;
 
     // For debugging only.  You can see these in hierarchyviewer.
@@ -2516,6 +2517,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
         }
 
         boolean handled = false;
+
         // 校验事件是否安全（合法）
         if (onFilterTouchEventForSecurity(ev)) {
 
@@ -2555,7 +2557,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
                 intercepted = true;
             }
 
-            // （不管）
+            // 辅助功能（不管）
             // If intercepted, start normal event dispatch. Also if there is already
             // a view that is handling the gesture, do normal event dispatch.
             if (intercepted || mFirstTouchTarget != null) {
@@ -2743,7 +2745,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
                 TouchTarget predecessor = null;
                 TouchTarget target = mFirstTouchTarget;
 
-                // 遍历所以有的接收者
+                // 从首个接收者开始遍历所以有的接收者
                 while (target != null) {
                     // 下一个接收者
                     final TouchTarget next = target.next;
@@ -2754,7 +2756,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
                     } else {
                         final boolean cancelChild = resetCancelNextUpFlag(target.child) || intercepted;
 
-                        // 分发给当前的接收者
+                        // 分发给接收者对象
                         if (dispatchTransformedTouchEvent(ev, cancelChild,
                                 target.child, target.pointerIdBits)) {
                             handled = true;
@@ -3073,6 +3075,8 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
                 if (child == null) {
                     handled = super.dispatchTouchEvent(event);
                 } else {
+                    // 事件坐标的换算
+                    // 当前滚动的距离 - 子控件的起始坐标
                     final float offsetX = mScrollX - child.mLeft;
                     final float offsetY = mScrollY - child.mTop;
                     event.offsetLocation(offsetX, offsetY);

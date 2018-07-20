@@ -2,7 +2,7 @@
 
 大纲：
 * 触摸事件如何产生的
-* 
+* ​
 
 ## 事件调用链
 ```java
@@ -19,7 +19,7 @@ main(ZygoteInit) --> run(ZygoteInit$MethodAndArgsCaller) --> main(ActivityThread
 ### 注册事件接收者
 *. 调用 setView(ViewRootImpl) 
 *  创建WindowInputEventReciverd对象，并完成向MessageQueue注册InputEvent的接收者
-* 后续会把InputEvent事件分发到 WindowInputEventReciverd
+*  后续会把InputEvent事件分发到 WindowInputEventReciverd
 
 ### 接收事件并处理
 * 当有InputEvent发生，会通过dispatchInputEvent（InputEventReceiver)回调从Native回调出来
@@ -38,35 +38,115 @@ main(ZygoteInit) --> run(ZygoteInit$MethodAndArgsCaller) --> main(ActivityThread
 * processPointerEvent根据结果标记为FINISH_HANDLED或FPRWARD
 * 当调用finishInputEvent（ViewRootImpl)，会调用 finishInputEvent（InputEventReceiver）告诉系统是否已处理事件，如果不处理，事件的其他状态不会发送过来
 
+### ViewRootImpl
+视图层次结构的顶部，在View和WindowManager之间实现所需的协议
+这大部分是WindowManagerGlobal的内部实现细节
+内部使用 WindowInputEventReceiver 接收输入事件
+
+dispatchDetachedFromWindow（）注销接收器
+
+### DecorView
+装饰视图
+
+### PhoneWindow
+Window的唯一实现类
+
+Activity --》PhoneWindow --》 DecorView
+
+### Window
+* Activity 控制单元
+* Window 承载视图的窗口
+* ViewRoot  视图层次结构的顶部，连接View和WindowManager之间的纽带
+* View 视图
+
+
 ## 触摸事件MotionEvent
+通过`getAction()`方法获取当前的动作，前8位表示对于的动作，8~16位表示对应的手指索引
+`getActionMasked()`获取动作类型
+`getActionIndex()`获取多点触控对应的索引
+`getRawX()`
 
-## 单点触控
+### 单点触控
 
-| 类型                   | 说明                               |
-| ---------------------- | ---------------------------------- |
-| ACTION_DOWN            | 手指按下触发                       |
-| ACTION_MOVE            | 手指移动触发                       |
-| ACTION_UP              | 手指离开触发                       |
+| 类型                 | 说明                |
+| ------------------ | ----------------- |
+| ACTION_DOWN        | 手指按下触发            |
+| ACTION_MOVE        | 手指移动触发            |
+| ACTION_UP          | 手指离开触发            |
 | ACTION_CANCEL（特殊）  | 事件被上层拦截，上层主动发送的事件 |
-| ACTION_OUTSIDE（特殊） |                                    |
+| ACTION_OUTSIDE（特殊） | 手指移动到了Window外部    |
 
-## 多点触控
+| 方法                | 说明              |
+| ----------------- | --------------- |
+| getActionMasked() | 获取动作的类型         |
+| getRawX()         | 获取基于屏幕的X坐标      |
+| getRawY()         | 获取基于屏幕的Y坐标      |
+| getX()            | 获取基于被点击控件的相对X坐标 |
+| getY()            | 获取基于被点击控件的相对Y坐标 |
 
-| 类型                | 说明                                 |
-| ------------------- | ------------------------------------ |
-| ACTION_DOWN         | 第一个手指按下触发                   |
+### 多点触控
+
+| 类型                  | 说明                 |
+| ------------------- | ------------------ |
+| ACTION_DOWN         | 第一个手指按下触发          |
 | ACTION_MOVE         | 手指移动触发（可能是第一个或者其他） |
-| ACTION_POINTER_DOWN | 其他手指按下触发                     |
-| ACTION_POINTER_UP   | 非最后一个手指离开触发               |
-| ACTION_UP           | 最后一个手指离开触发                 |
+| ACTION_POINTER_DOWN | 其他手指按下触发           |
+| ACTION_POINTER_UP   | 非最后一个手指离开触发        |
+| ACTION_UP           | 最后一个手指离开触发         |
 
-| 方法                            | 说明                           |
-| ------------------------------- | ------------------------------ |
+| 方法                              | 说明              |
+| ------------------------------- | --------------- |
 | getActionIndex()                | 获取该事件是哪个索引手指产生的 |
-| getPointerCount()               | 获取屏幕上的手指个数           |
-| getPointerId(int pointerIndex)  | 通过索引获取的手指ID           |
-| findPointerIndex(int pointerId) | 通过手指ID获取索引             |
+| getPointerCount()               | 获取屏幕上的手指个数      |
+| getPointerId(int pointerIndex)  | 通过索引获取的手指ID     |
+| findPointerIndex(int pointerId) | 通过手指ID获取索引      |
+
+## 事件分发
+
+### ViewGroup 和 View 之间的事件分发
+
+#### ViewGroup 分发处理
+* `dispatchTouchEvent`
+* `onInterceptTouchEvent`
+* `onTouchEvent`
+
+* 是否拦截事件
+* 在ACTION_DOWN的时候查找接收对象
+* 在
+
+#### View 分发处理
+* `dispatchTouchEvent`
+* `onTouchEvent`
+
+
+| ViewGroup | View | 处理者       | 说明                               |
+| --------- | ---- | --------- | -------------------------------- |
+| 不处理       | 不处理  | 无         | 无                                |
+| 不处理       | 处理   | View      | 仅限View的范围内                       |
+| 拦截但不处理    | 无视   | 无         | View被拦截，没有机会处理，但ViewGroup自身也放弃处理 |
+| 拦截并且处理    | 无视   | ViewGroup |                                  |
+| 处理        | 处理   |           |                                  |
+
+```java
+
+Group: 	dispatchTouchEvent --> ACTION_DOWN
+       	onInterceptTouchEvent --> ACTION_DOWN
+       	onInterceptTouchEvent result --> false
+
+View: 	dispatchTouchEvent --> ACTION_DOWN
+View: 	onTouchEvent --> ACTION_DOWN
+      	onTouchEvent result --> false
+      	dispatchTouchEvent result --> false
+
+Group: 	onTouchEvent --> ACTION_DOWN
+       	onTouchEvent result --> false
+       	dispatchTouchEvent result --> false
+       	
+
+```
+
+## CoordinatorLayout
+
 
 ### 参考
-
 [MotionEvent详解] (http://www.gcssloop.com/customview/motionevent)

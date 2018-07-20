@@ -1,5 +1,6 @@
 package com.liangbx.android.practice.touchevent.util;
 
+import android.util.Log;
 import android.view.MotionEvent;
 
 /**
@@ -12,7 +13,7 @@ import android.view.MotionEvent;
  * @version 2018/3/15
  */
 
-public class TouchEventUtil {
+public class TouchEventInfo {
 
     public static String getActionName(MotionEvent event) {
         switch (event.getAction() & MotionEvent.ACTION_MASK) {
@@ -72,5 +73,12 @@ public class TouchEventUtil {
             default:
                 return "unknown";
         }
+    }
+
+    public static void log(String tag, MotionEvent ev) {
+        Log.d(tag, "动作类型 --> " + TouchEventInfo.getActionName(ev));
+        Log.d(tag, "动作索引 --> " + ev.getActionIndex());
+        Log.d(tag, "绝对坐标 --> [" + ev.getRawX() + ", " + ev.getRawY() + "]");
+        Log.d(tag, "相对坐标 --> [" + ev.getX() + ", " + ev.getY() + "]");
     }
 }

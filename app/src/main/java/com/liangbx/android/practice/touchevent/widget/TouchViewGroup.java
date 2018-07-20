@@ -7,7 +7,7 @@ import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
-import android.view.View;
+import android.widget.FrameLayout;
 
 import com.liangbx.android.practice.touchevent.util.TouchEventInfo;
 
@@ -20,24 +20,24 @@ import com.liangbx.android.practice.touchevent.util.TouchEventInfo;
  * @author liangbx
  * @version 2018/6/14
  */
-public class TouchView extends View {
+public class TouchViewGroup extends FrameLayout {
 
-    private static final String TAG = "TouchView";
+    private static final String TAG = "TouchViewGroup";
 
-    public TouchView(Context context) {
+    public TouchViewGroup(Context context) {
         super(context);
     }
 
-    public TouchView(Context context, @Nullable AttributeSet attrs) {
+    public TouchViewGroup(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
     }
 
-    public TouchView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    public TouchViewGroup(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    public TouchView(Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+    public TouchViewGroup(Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
     }
 
